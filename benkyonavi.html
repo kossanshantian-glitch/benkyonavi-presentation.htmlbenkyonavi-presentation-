@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勉強ナビ — 失敗パターンを蓄積し、次回の学習行動まで決める学習改善システム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f1117;
+  --ink2:#2d3142;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --bg:#f8f9fc;
+  --white:#ffffff;
+  --blue:#2563eb;
+  --blue-l:#eff6ff;
+  --blue-m:#bfdbfe;
+  --green:#059669;
+  --green-l:#d1fae5;
+  --amber:#d97706;
+  --amber-l:#fef3c7;
+  --red:#dc2626;
+  --red-l:#fee2e2;
+  --purple:#7c3aed;
+  --purple-l:#ede9fe;
+  --teal:#0f766e;
+  --teal-l:#ccfbf1;
+  --orange:#ea580c;
+}
+body{font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);font-size:15px;line-height:1.7}
+
+/* ── ヘッダー ── */
+.ph{border-bottom:2px solid var(--ink);padding:0 40px;display:flex;align-items:stretch;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:200;height:52px}
+.ph-left{display:flex;align-items:center;gap:12px}
+.ph-logo{font-size:16px;font-weight:900;letter-spacing:-0.03em}
+.ph-logo span{color:var(--blue)}
+.ph-tag{font-size:11px;color:var(--muted);border:1px solid var(--border);padding:2px 10px;border-radius:20px}
+.ph-right{display:flex;align-items:center;gap:8px}
+.ph-nav{font-size:12px;color:var(--muted);padding:0 14px;cursor:pointer;height:100%;display:flex;align-items:center;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color 0.2s,border-color 0.2s}
+.ph-nav:hover{color:var(--ink);border-color:var(--ink)}
+
+/* ── ヒーロー ── */
+.hero{max-width:820px;margin:0 auto;padding:64px 24px 48px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blue-l);border:1px solid var(--blue-m);padding:4px 12px;border-radius:20px;margin-bottom:20px;letter-spacing:0.05em}
+.hero-title{font-size:42px;font-weight:900;line-height:1.2;letter-spacing:-0.04em;margin-bottom:18px}
+.hero-title em{font-style:normal;color:var(--blue);border-bottom:3px solid var(--blue)}
+.hero-sub{font-size:17px;color:var(--muted);line-height:1.8;margin-bottom:0}
+.hero-cycle{display:flex;align-items:center;gap:0;margin-top:32px;overflow-x:auto;padding-bottom:4px}
+.cyc-step{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;min-width:90px;text-align:center}
+.cyc-step.hi{background:var(--blue-l);border-color:var(--blue-m)}
+.cyc-ico{font-size:20px}
+.cyc-lbl{font-size:11px;font-weight:700;color:var(--ink)}
+.cyc-step.hi .cyc-lbl{color:var(--blue)}
+.cyc-arr{font-size:16px;color:var(--border);padding:0 4px;flex-shrink:0}
+
+/* ── TOC ── */
+.toc{max-width:820px;margin:0 auto 56px;padding:0 24px}
+.toc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.toc-item{border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all 0.2s}
+.toc-item:hover{border-color:var(--blue);background:var(--blue-l)}
+.toc-num{font-size:10px;color:var(--blue);font-weight:700;letter-spacing:0.08em;margin-bottom:4px}
+.toc-label{font-size:13px;font-weight:700;color:var(--ink)}
+.toc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── 共通 ── */
+.sep{border:none;border-top:1.5px solid var(--border);margin:0 24px}
+.section{max-width:820px;margin:0 auto;padding:64px 24px 80px}
+.sec-ey{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.sec-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--ink);color:var(--white)}
+.sec-tag{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:0.08em}
+.sec-title{font-size:30px;font-weight:900;letter-spacing:-0.03em;margin-bottom:28px;line-height:1.25}
+.sec-title span{color:var(--blue)}
+.card{border:1.5px solid var(--border);border-radius:12px;padding:22px}
+.card+.card{margin-top:14px}
+.tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block}
+.tag-blue{background:var(--blue-l);color:var(--blue)}
+.tag-green{background:var(--green-l);color:var(--green)}
+.tag-red{background:var(--red-l);color:var(--red)}
+.tag-amber{background:var(--amber-l);color:var(--amber)}
+
+/* ── デモ ── */
+.demo-wrap{border:1.5px solid var(--ink);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.demo-bar{background:var(--ink);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.demo-dot{width:10px;height:10px;border-radius:50%}
+.demo-url{font-size:11px;color:#9ca3af;background:rgba(255,255,255,0.1);padding:3px 14px;border-radius:20px;flex:1;text-align:center;font-family:'DM Mono',monospace}
+
+/* ── デモアプリ ── */
+.dapp{display:flex;flex-direction:column;background:var(--bg)}
+.dapp-hd{background:var(--white);border-bottom:1.5px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.dapp-title{font-size:14px;font-weight:900;color:var(--ink);letter-spacing:-0.02em}
+.dapp-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.prog-row{display:flex;align-items:center;gap:8px;margin-top:4px}
+.prog-bar{height:4px;background:var(--border);border-radius:2px;flex:1;max-width:180px}
+.prog-fill{height:100%;background:var(--blue);border-radius:2px;transition:width 0.4s}
+.prog-lbl{font-size:11px;color:var(--muted)}
+.dapp-body{display:grid;grid-template-columns:26% 25% 23% 26%;border-top:1px solid var(--border)}
+.dp{border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:480px;background:var(--white);overflow:hidden}
+.dp:last-child{border-right:none}
+.dp-hd{padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.dp-tag{font-size:9px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:2px}
+.dp-name{font-size:11px;font-weight:700;color:var(--ink)}
+.dp-body{flex:1;overflow-y:auto;padding:8px}
+.locked{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--muted);font-size:12px;text-align:center;padding:16px;line-height:1.6}
+.lock-ico{font-size:24px;opacity:0.4}
+
+/* p1 */
+.qrow{padding:8px 10px;border-radius:8px;border:1.5px solid transparent;margin-bottom:5px;cursor:pointer;transition:all 0.15s}
+.qrow:hover{background:var(--bg);border-color:var(--border)}
+.qrow.active{background:var(--blue-l);border-color:var(--blue-m)}
+.qrow-top{display:flex;align-items:center;gap:6px}
+.qnum{font-size:10px;color:var(--muted);min-width:22px;font-family:'DM Mono',monospace}
+.qtxt{font-size:11px;color:var(--ink);flex:1;line-height:1.4}
+.qbdg{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.bdg-A{background:var(--green-l);color:var(--green)}
+.bdg-B{background:var(--amber-l);color:var(--amber)}
+.bdg-C{background:var(--red-l);color:var(--red)}
+.bdg-N{background:var(--bg);color:var(--muted)}
+.qprev{font-size:10px;color:var(--muted);margin-top:3px;padding-left:28px}
+
+/* p2 */
+.qtext{font-size:12px;line-height:1.7;color:var(--ink);margin-bottom:12px;padding:10px 12px;background:var(--bg);border-radius:8px}
+.ox-row{display:flex;gap:6px;margin-bottom:8px}
+.ox-btn{flex:1;padding:10px;font-size:18px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;background:var(--white);font-family:'Noto Sans JP',sans-serif;transition:all 0.15s}
+.ox-btn:hover:not(:disabled){background:var(--bg)}
+.ox-btn.sel-ok{border-color:var(--green);background:var(--green-l);color:var(--green)}
+.ox-btn.sel-ng{border-color:var(--red);background:var(--red-l);color:var(--red)}
+.ox-btn:disabled{cursor:default}
+.ch-btn{width:100%;text-align:left;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;margin-bottom:5px;cursor:pointer;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);transition:all 0.15s}
+.ch-btn:hover:not(:disabled){background:var(--bg)}
+.ch-btn.sel{border-color:var(--blue);background:var(--blue-l);color:var(--blue)}
+.ch-btn.ok{border-color:var(--green);background:var(--green-l);color:var(--green)}
+.ch-btn.ng{border-color:var(--red);background:var(--red-l);color:var(--red)}
+.ch-btn:disabled{cursor:default}
+.dbtn{width:100%;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:11px;font-weight:700;cursor:pointer;color:var(--ink);font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;margin-top:6px}
+.dbtn:hover:not(:disabled){background:var(--bg)}
+.dbtn.primary{background:var(--blue);color:var(--white);border-color:var(--blue)}
+.dbtn.primary:hover:not(:disabled){background:#1d4ed8}
+.dbtn:disabled{opacity:0.35;cursor:not-allowed}
+.res-box{padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;margin-bottom:8px}
+.res-ok{background:var(--green-l);color:var(--green)}
+.res-ng{background:var(--red-l);color:var(--red)}
+.explain{background:var(--bg);border-radius:8px;padding:9px;margin-bottom:8px}
+.explain-lbl{font-size:9px;font-weight:700;color:var(--muted);margin-bottom:3px;letter-spacing:0.08em}
+.explain-txt{font-size:11px;color:var(--ink);line-height:1.6}
+
+/* p3 原因分析 */
+.cause-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:5px;cursor:pointer;transition:all 0.15s}
+.cause-item:hover{background:var(--bg)}
+.cause-item.sel{border-color:var(--red);background:var(--red-l)}
+.cause-ico{font-size:14px;width:22px;text-align:center;flex-shrink:0}
+.cause-txt{font-size:11px;font-weight:500;color:var(--ink);flex:1}
+.cause-sub{font-size:9px;color:var(--muted)}
+.cause-item.sel .cause-txt{color:var(--red)}
+.memo-ta{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:7px;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:none;margin-top:4px}
+.memo-ta:focus{outline:none;border-color:var(--blue)}
+.slbl{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:0.08em;margin:8px 0 4px}
+
+/* p4 改善計画 */
+.ai-proposal{background:linear-gradient(135deg,var(--blue-l),#f0f9ff);border:1.5px solid var(--blue-m);border-radius:10px;padding:12px;margin-bottom:10px}
+.ai-proposal-hd{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.ai-ico{width:24px;height:24px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--white);flex-shrink:0}
+.ai-proposal-title{font-size:11px;font-weight:700;color:var(--blue)}
+.ai-proposal-txt{font-size:11px;color:var(--ink2);line-height:1.6}
+.action-item{display:flex;align-items:flex-start;gap:7px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:5px;cursor:pointer;transition:all 0.15s}
+.action-item.sel{border-color:var(--blue);background:var(--blue-l)}
+.action-cb{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.action-item.sel .action-cb{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.action-txt{font-size:11px;color:var(--ink);flex:1}
+.action-when{font-size:9px;color:var(--muted)}
+.save-btn{width:100%;padding:9px;border-radius:8px;background:var(--green);color:var(--white);border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-top:8px;transition:background 0.15s}
+.save-btn:hover{background:#047857}
+.save-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.next-rev{font-size:10px;color:var(--muted);text-align:center;margin-top:6px}
+
+/* ── ダッシュボード ── */
+.dash{max-width:820px;margin:0 auto;padding:0 24px 64px}
+.dash-title{font-size:14px;font-weight:700;color:var(--muted);margin-bottom:16px;letter-spacing:0.05em}
+.dash-grid{display:grid;grid-template-columns:1fr 1.4fr 1fr 1fr;gap:12px}
+.dash-card{border:1.5px solid var(--border);border-radius:12px;padding:16px;background:var(--white)}
+.dash-card-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;margin-bottom:10px}
+/* donut */
+.donut-wrap{position:relative;width:90px;height:90px;margin:0 auto 8px}
+.donut-wrap svg{width:100%;height:100%}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-pct{font-size:18px;font-weight:900;color:var(--ink)}
+.donut-lbl{font-size:9px;color:var(--muted)}
+.legend{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.leg-row{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink2)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.leg-pct{margin-left:auto;font-weight:700;font-family:'DM Mono',monospace}
+/* sparkline */
+.sparkline-wrap{height:60px;position:relative;margin-bottom:6px}
+.sparkline-wrap svg{width:100%;height:100%}
+.spark-dates{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-family:'DM Mono',monospace}
+/* rec */
+.rec-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:7px}
+.rec-num{font-size:10px;font-weight:900;color:var(--blue);font-family:'DM Mono',monospace;min-width:16px}
+.rec-txt{font-size:10px;color:var(--ink);line-height:1.4}
+.rec-btn{width:100%;padding:6px;border:1.5px solid var(--blue);border-radius:7px;background:var(--blue-l);color:var(--blue);font-size:10px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;margin-top:4px}
+.rec-btn:hover{background:var(--blue);color:var(--white)}
+/* goal */
+.goal-box{background:var(--amber-l);border-radius:8px;padding:10px;margin-bottom:8px}
+.goal-txt{font-size:11px;font-weight:700;color:var(--amber);margin-bottom:4px}
+.goal-bar-bg{height:6px;background:rgba(0,0,0,0.1);border-radius:3px}
+.goal-bar-fill{height:100%;background:var(--amber);border-radius:3px;transition:width 0.5s}
+.goal-pct{font-size:10px;color:var(--amber);text-align:right;margin-top:2px}
+.goal-meta{font-size:10px;color:var(--muted)}
+.goal-meta+.goal-meta{margin-top:2px}
+
+/* ── Section 2〜4 共通 ── */
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.feat{border:1.5px solid var(--border);border-radius:12px;overflow:hidden}
+.feat-hd{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:8px}
+.feat-ico{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.feat-ttl{font-size:13px;font-weight:700}
+.feat-body{padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.7}
+.effect-box{background:var(--teal-l);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:12px;color:var(--teal)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.cmp-bad{background:#fff5f5;border:1.5px solid var(--red-l);border-radius:8px;padding:12px}
+.cmp-good{background:#f0fff8;border:1.5px solid var(--green-l);border-radius:8px;padding:12px}
+.cmp-lbl{font-size:10px;font-weight:700;margin-bottom:6px}
+.cmp-lbl.bad{color:var(--red)}
+.cmp-lbl.good{color:var(--green)}
+.cmp-txt{font-size:12px;color:var(--ink);line-height:1.6}
+.flow-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px;background:var(--bg);border-radius:8px;margin:12px 0}
+.flow-step{font-size:11px;font-weight:700;background:var(--blue-l);color:var(--blue);padding:4px 10px;border-radius:6px}
+.flow-arr{font-size:12px;color:var(--muted)}
+.struggle-card{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.struggle-hd{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
+.struggle-num{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.struggle-ttl{font-size:14px;font-weight:700}
+.struggle-body{padding:16px}
+.struggle-result{background:var(--blue-l);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:12px;color:var(--blue);border-left:3px solid var(--blue)}
+.three-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.tg-item{border:1.5px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.tg-item.sel{border-color:var(--blue);background:var(--blue-l)}
+.tg-ttl{font-size:11px;font-weight:700;margin-bottom:3px}
+.tg-item.sel .tg-ttl{color:var(--blue)}
+.tg-desc{font-size:10px;color:var(--muted)}
+.summary-box{border:1.5px solid var(--border);border-radius:14px;padding:32px;text-align:center;background:var(--bg);margin-top:20px}
+.summary-ey{font-size:11px;color:var(--blue);font-weight:700;letter-spacing:0.08em;margin-bottom:10px}
+.summary-ttl{font-size:22px;font-weight:900;letter-spacing:-0.03em;line-height:1.4}
+.summary-ttl span{color:var(--blue)}
+.footer{border-top:1.5px solid var(--border);padding:28px;text-align:center;font-size:12px;color:var(--muted)}
+.pane-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0}
+.pf-item{border:1.5px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.pf-item.hi{border-color:var(--blue);background:var(--blue-l)}
+.pf-num{font-size:9px;color:var(--blue);font-weight:700;margin-bottom:4px;letter-spacing:0.08em}
+.pf-ttl{font-size:12px;font-weight:700;margin-bottom:4px}
+.pf-desc{font-size:10px;color:var(--muted)}
+.highlight-box{border:1.5px solid var(--blue-m);background:var(--blue-l);border-radius:12px;padding:24px;text-align:center;margin-bottom:28px}
+.hl-ey{font-size:11px;color:var(--blue);font-weight:700;margin-bottom:8px}
+.hl-ttl{font-size:20px;font-weight:900;letter-spacing:-0.02em;line-height:1.4}
+.hl-ttl span{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="ph">
+  <div class="ph-left">
+    <div class="ph-logo">勉強<span>ナビ</span></div>
+    <div class="ph-tag">学習改善システム</div>
+  </div>
+  <div class="ph-right">
+    <div class="ph-nav">SECTION 1 画面デモ</div>
+    <div class="ph-nav">SECTION 2 課題</div>
+    <div class="ph-nav">SECTION 3 工夫</div>
+    <div class="ph-nav">SECTION 4 苦戦</div>
+  </div>
+</div>
+
+<!-- ヒーロー -->
+<div class="hero">
+  <div class="hero-badge">🎓 学習改善システム</div>
+  <h1 class="hero-title">失敗パターンを蓄積し、<br><em>次回の学習行動まで</em>決める</h1>
+  <p class="hero-sub">問題を解くだけでなく、<strong>なぜ間違えたか</strong>を記録・分析し、<br>次の具体的な行動まで自動で提案する学習改善システムです。</p>
+  <div class="hero-cycle">
+    <div class="cyc-step hi"><div class="cyc-ico">📝</div><div class="cyc-lbl">問題を解く</div></div>
+    <div class="cyc-arr">→</div>
+    <div class="cyc-step hi"><div class="cyc-ico">❌</div><div class="cyc-lbl">間違える</div></div>
+    <div class="cyc-arr">→</div>
+    <div class="cyc-step hi"><div class="cyc-ico">🔍</div><div class="cyc-lbl">原因を記録</div></div>
+    <div class="cyc-arr">→</div>
+    <div class="cyc-step hi"><div class="cyc-ico">📊</div><div class="cyc-lbl">傾向を分析</div></div>
+    <div class="cyc-arr">→</div>
+    <div class="cyc-step hi"><div class="cyc-ico">🚀</div><div class="cyc-lbl">次回の改善へ</div></div>
+    <div class="cyc-arr">→</div>
+    <div class="cyc-step" style="border-color:var(--blue);border-style:dashed"><div class="cyc-ico">📈</div><div class="cyc-lbl" style="color:var(--blue)">理解が加速</div></div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-grid">
+    <div class="toc-item"><div class="toc-num">SECTION 1</div><div class="toc-label">画面のデモ</div><div class="toc-sub">実際に操作できます</div></div>
+    <div class="toc-item"><div class="toc-num">SECTION 2</div><div class="toc-label">解決する課題</div><div class="toc-sub">同じミスをなぜ繰り返すか</div></div>
+    <div class="toc-item"><div class="toc-num">SECTION 3</div><div class="toc-label">工夫したポイント</div><div class="toc-sub">失敗を資産に変える仕組み</div></div>
+    <div class="toc-item"><div class="toc-num">SECTION 4</div><div class="toc-label">苦戦したポイント</div><div class="toc-sub">何を作らないかを決める難しさ</div></div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- SECTION 1 -->
+<div class="section" id="sec1">
+  <div class="sec-ey"><div class="sec-ico">📱</div><span class="sec-tag">SECTION 1</span></div>
+  <h2 class="sec-title">画面の<span>デモ</span></h2>
+
+  <div class="demo-wrap">
+    <div class="demo-bar">
+      <div class="demo-dot" style="background:#ff5f57"></div>
+      <div class="demo-dot" style="background:#febc2e"></div>
+      <div class="demo-dot" style="background:#28c840"></div>
+      <div class="demo-url">勉強ナビ — UIデザイン基礎 / ニールセン10原則</div>
+    </div>
+
+    <div class="dapp" id="dapp">
+      <div class="dapp-hd">
+        <div>
+          <div class="dapp-title">勉強ナビ</div>
+          <div class="dapp-sub">UIデザイン基礎 / ニールセン10原則</div>
+          <div class="prog-row">
+            <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+            <div class="prog-lbl" id="prog-lbl">0/7問完了</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">フィルター：すべての単元 ▾　並び順：復習優先 ▾</div>
+      </div>
+      <div class="dapp-body">
+        <!-- P1 問題一覧 -->
+        <div class="dp">
+          <div class="dp-hd">
+            <div class="dp-tag">PANE 1</div>
+            <div class="dp-name">問題一覧（復習優先順位）</div>
+          </div>
+          <div class="dp-body" id="p1"></div>
+        </div>
+        <!-- P2 問題と解答 -->
+        <div class="dp">
+          <div class="dp-hd">
+            <div class="dp-tag">PANE 2</div>
+            <div class="dp-name" id="p2-sub">問題と解答</div>
+          </div>
+          <div class="dp-body" id="p2"><div class="locked"><div class="lock-ico">←</div>問題を選んでください</div></div>
+        </div>
+        <!-- P3 原因分析 -->
+        <div class="dp">
+          <div class="dp-hd">
+            <div class="dp-tag">PANE 3</div>
+            <div class="dp-name">原因分析（なぜ間違えたか）</div>
+          </div>
+          <div class="dp-body" id="p3"><div class="locked"><div class="lock-ico">🔒</div>解答後に入力できます</div></div>
+        </div>
+        <!-- P4 改善計画 -->
+        <div class="dp">
+          <div class="dp-hd">
+            <div class="dp-tag">PANE 4</div>
+            <div class="dp-name" id="p4-sub">改善計画（次どうするか）</div>
+          </div>
+          <div class="dp-body" id="p4"><div class="locked"><div class="lock-ico">🔒</div>③の原因分析後<br>に解放されます</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:28px">← 問題を選んでクリックすると学習が始まります。実際に操作できます。</p>
+
+  <!-- ダッシュボード -->
+  <div class="dash" style="padding:0 0 32px">
+    <div class="dash-title">あなたの学習傾向（AI分析）　過去30問の分析結果</div>
+    <div class="dash-grid">
+      <!-- 円グラフ -->
+      <div class="dash-card">
+        <div class="dash-card-title">失敗パターン分布</div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 36 36" id="donut-svg">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" stroke-width="4"/>
+          </svg>
+          <div class="donut-center"><div class="donut-pct" id="donut-top-pct">—</div><div class="donut-lbl" id="donut-top-lbl">分析中</div></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <!-- 成長推移 -->
+      <div class="dash-card">
+        <div class="dash-card-title">理解度スコアの成長推移</div>
+        <div class="sparkline-wrap">
+          <svg id="spark-svg" viewBox="0 0 200 60" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="spark-dates" id="spark-dates"></div>
+      </div>
+      <!-- おすすめ学習 -->
+      <div class="dash-card">
+        <div class="dash-card-title">次のおすすめ学習</div>
+        <div id="rec-list"></div>
+        <button class="rec-btn" onclick="handleRecBtn()">おすすめ順で学習する</button>
+      </div>
+      <!-- 今月の目標 -->
+      <div class="dash-card">
+        <div class="dash-card-title">今月の目標</div>
+        <div class="goal-box">
+          <div class="goal-txt" id="goal-txt">目標：全7問をAランクにする</div>
+          <div class="goal-bar-bg"><div class="goal-bar-fill" id="goal-bar" style="width:0%"></div></div>
+          <div class="goal-pct" id="goal-pct">0%</div>
+        </div>
+        <div class="goal-meta" id="goal-streak">🗓 連続日数：0日</div>
+        <div class="goal-meta">🏆 最高記録：15日（更新中！）</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:8px">
+    <div style="text-align:center;font-size:15px;font-weight:700;margin-bottom:14px">4ペインは左から右へ、思考が深まる構造</div>
+    <div class="pane-flow">
+      <div class="pf-item hi"><div class="pf-num">PANE 1</div><div class="pf-ttl">問題一覧</div><div class="pf-desc">優先順位で<br>「今日何をやるか」</div></div>
+      <div class="pf-item"><div class="pf-num">PANE 2</div><div class="pf-ttl">問題と解答</div><div class="pf-desc">正誤と解説で<br>「正解は何か」</div></div>
+      <div class="pf-item"><div class="pf-num">PANE 3</div><div class="pf-ttl">原因分析</div><div class="pf-desc">チェックリストで<br>「なぜ間違えたか」</div></div>
+      <div class="pf-item"><div class="pf-num">PANE 4</div><div class="pf-ttl">改善計画</div><div class="pf-desc">アクション決定で<br>「次どうするか」</div></div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--muted)">左 → 右で「ざっくり → くわしく」へ。視線が一方向に流れる</div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- SECTION 2 -->
+<div class="section" id="sec2">
+  <div class="sec-ey"><div class="sec-ico">🎯</div><span class="sec-tag">SECTION 2</span></div>
+  <h2 class="sec-title">解決する<span>課題</span></h2>
+
+  <div class="highlight-box">
+    <div class="hl-ey">このツールが解こうとしているのは</div>
+    <div class="hl-ttl">「解いた」で終わりにせず、<br><span>「なぜ間違えたか」を資産として蓄積する</span></div>
+  </div>
+
+  <p style="margin-bottom:20px">多くの学習ツールは「問題を解いて正解か不正解か」で終わってしまいます。しかし実際には、<strong>なぜ間違えたのかを分析しない限り、同じミスを繰り返してしまいます</strong>。このツールは、間違いを「失敗」ではなく「データ」として蓄積し、次の学習改善につなげます。</p>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px">① 解く — 正解は合っていた？</div>
+    <div style="font-size:13px;color:var(--muted)">OX・4択で解答。正誤判定と解説でまず「正解が何か」を確認します。ここで終わらないのがこのツールの核心です。</div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px">② 原因分析 — なぜ間違えた？</div>
+    <div style="font-size:13px;color:var(--muted)">知識不足・理解不足・読み飛ばし・計算ミス・ケアレスミス・時間不足などから原因を選択。「間違えた」という結果だけでなく、<strong>なぜ間違えたのか</strong>を記録します。</div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px">③ 改善計画 — 次どうする？</div>
+    <div style="font-size:13px;color:var(--muted)">蓄積された失敗パターンをもとに、具体的な改善アクションを提案。<strong>「原因分析で終わる」のではなく、「次の行動まで決定する」</strong>仕組みが最大の特徴です。</div>
+  </div>
+
+  <div class="card" style="background:var(--bg);margin-top:20px">
+    <div style="font-size:13px;color:var(--blue);font-weight:700;margin-bottom:12px;text-align:center">4つのペインにそれぞれの役割を割り当てる</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--white);border-radius:8px;border:1.5px solid var(--border)">
+        <span class="tag tag-blue">PANE 1+2</span><span style="font-size:12px">→</span><span style="font-size:13px;font-weight:700;color:var(--blue)">解く</span><span style="font-size:12px;color:var(--muted)">問題一覧と解答で「正解が何か」を確認</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--white);border-radius:8px;border:1.5px solid var(--border)">
+        <span class="tag tag-red">PANE 3</span><span style="font-size:12px">→</span><span style="font-size:13px;font-weight:700;color:var(--red)">原因分析</span><span style="font-size:12px;color:var(--muted)">チェックリストで「なぜ間違えたか」を記録</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--white);border-radius:8px;border:1.5px solid var(--border)">
+        <span class="tag tag-green">PANE 4</span><span style="font-size:12px">→</span><span style="font-size:13px;font-weight:700;color:var(--green)">改善計画</span><span style="font-size:12px;color:var(--muted)">次のアクションまで決定して保存</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:8px;margin-top:14px;padding:10px;background:var(--white);border-radius:8px;border:1.5px solid var(--border)">
+      <span style="color:var(--blue);font-size:14px">●</span>
+      <div style="font-size:13px">このツールのコンセプトは「問題を解くためのツール」ではなく、<strong>「間違いを資産化し、学習改善を続けるためのシステム」</strong>です。</div>
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- SECTION 3 -->
+<div class="section" id="sec3">
+  <div class="sec-ey"><div class="sec-ico">✦</div><span class="sec-tag">SECTION 3</span></div>
+  <h2 class="sec-title">工夫した<span>ポイント</span></h2>
+
+  <div class="highlight-box">
+    <div class="hl-ey">特にこだわったのは</div>
+    <div class="hl-ttl">「間違い」を記録で終わらせず、<br><span>「次の行動」まで決めきる流れを作ること</span></div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feat">
+      <div class="feat-hd"><div class="feat-ico">→</div><div><div style="font-size:10px;color:var(--muted)">工夫①</div><div class="feat-ttl">原因をチェックリストで選ぶだけ</div></div></div>
+      <div class="feat-body">
+        「なぜ間違えた？」を毎回文章で書くのは続きません。<strong>知識不足・理解不足・読み飛ばし・計算ミス・ケアレスミス・時間不足</strong>の6項目からチェックするだけで記録が完了します。
+        <div class="effect-box">✓ 効果：「書く手間」がゼロになり、振り返りの継続率が上がります。</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-hd"><div class="feat-ico">A</div><div><div style="font-size:10px;color:var(--muted)">工夫②</div><div class="feat-ttl">優先度バッジで迷わず問題を選択</div></div></div>
+      <div class="feat-body">
+        問題リストにA/B/Cバッジを表示し、C（要復習）→B（復習推奨）→A（理解済）の順でソート。「今日は何をやろう」と迷う1ステップが消えます。
+        <div class="compare" style="margin-top:10px">
+          <div class="cmp-bad"><div class="cmp-lbl bad">× よくある</div><div class="cmp-txt">問題番号順。どれを優先すべきか毎回考える。</div></div>
+          <div class="cmp-good"><div class="cmp-lbl good">✓ このツール</div><div class="cmp-txt">Cバッジが自動で上に。リストを見るだけで決まる。</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-hd"><div class="feat-ico">→|</div><div><div style="font-size:10px;color:var(--muted)">工夫③</div><div class="feat-ttl">解答後にペインが順番に解放</div></div></div>
+      <div class="feat-body">
+        Pane3（原因分析）は解答後に解放。Pane4（改善計画）は原因分析後に解放。一度に全部見せない設計で、学習フローが自然に一方向に流れます。
+        <div class="flow-row">
+          <span class="flow-step">問題選択</span><span class="flow-arr">→</span><span class="flow-step">解答</span><span class="flow-arr">→</span><span class="flow-step">原因分析</span><span class="flow-arr">→</span><span class="flow-step">改善計画</span>
+        </div>
+        <div class="effect-box">✓ 効果：フローに沿って動くだけで振り返りが完了します。</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-hd"><div class="feat-ico">📊</div><div><div style="font-size:10px;color:var(--muted)">工夫④</div><div class="feat-ttl">失敗パターンをダッシュボードで可視化</div></div></div>
+      <div class="feat-body">
+        過去30問の原因記録を円グラフ・成長推移・おすすめ学習に自動集計。「自分はケアレスミスが多い」などのパターンを把握することで、学習改善の質が上がります。
+        <div class="effect-box">✓ 効果：積み上げた記録が「気づき」に変わります。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--bg)">
+    <div style="font-size:13px;color:var(--blue);font-weight:700;margin-bottom:6px">4つの工夫に共通すること</div>
+    <div style="font-size:18px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px">機能を足すより、「<span style="color:var(--blue)">迷いどころ</span>」を1つずつ消す</div>
+    <p style="font-size:13px;color:var(--muted)">優先ソート・段階的解放・チェックリスト・ダッシュボード。どれも「ユーザーがどこで迷うか」を観察して、その芽を1つずつ摘む作業でした。便利機能を1つ足すより、迷いを1つ消すほうが、画面はずっと使いやすくなります。</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- SECTION 4 -->
+<div class="section" id="sec4">
+  <div class="sec-ey"><div class="sec-ico">🔥</div><span class="sec-tag">SECTION 4</span></div>
+  <h2 class="sec-title">苦戦した<span>ポイント</span></h2>
+
+  <div class="highlight-box">
+    <div class="hl-ey">苦戦のいちばんのポイント</div>
+    <div class="hl-ttl">コードより、<span>「何を作らないか」</span>を<br>決めるところ</div>
+  </div>
+
+  <p style="margin-bottom:24px">「なぜ4ペインなのか」「改善計画をどう出すか」——設計段階で何度も迷いました。特に次の3つの分岐で大いに詰まりました。</p>
+
+  <div class="struggle-card">
+    <div class="struggle-hd"><div class="struggle-num">苦戦①</div><div class="struggle-ttl">何をテーマにするか — 学習に絞るか、汎用にするか</div></div>
+    <div class="struggle-body">
+      <p style="font-size:13px;margin-bottom:12px">最初は「UIデザイン・プログラミング・ビジネス知識の3分野を同梱」や「どの科目でも使える汎用テンプレート」も考えました。多くカバーした方が「便利そう」に見えるからです。</p>
+      <div class="struggle-result">✓ 結論：分野を複数並べると、どの学習にも中途半端なお手本になりません。ニールセン10原則1分野に絞り切って完成度を上げる方が、見る人が「自分の学習にも使える」と目標を持てると判断しました。</div>
+    </div>
+  </div>
+
+  <div class="struggle-card">
+    <div class="struggle-hd"><div class="struggle-num">苦戦②</div><div class="struggle-ttl">4ペインの役割をどう分けるか</div></div>
+    <div class="struggle-body">
+      <p style="font-size:13px;margin-bottom:12px">4ペインにすると決めても、どの情報をどこに置くかが難題でした。「問題／解答／解説／メモ」構成では「今どこを見ればいいか分からない」「答えが先に見える」問題が発生しました。</p>
+      <div class="three-grid">
+        <div class="tg-item"><div class="tg-ttl">案A</div><div class="tg-desc">問題→解答→解説→メモ</div><div class="tg-desc" style="color:var(--red);margin-top:4px">→ 解答が先に見えてしまう</div></div>
+        <div class="tg-item"><div class="tg-ttl">案B</div><div class="tg-desc">問題→メモ→解答→解説</div><div class="tg-desc" style="color:var(--red);margin-top:4px">→ 学習の流れが分断される</div></div>
+        <div class="tg-item sel"><div class="tg-ttl">案C ✓ 採用</div><div class="tg-desc">問題一覧→解答→原因分析→改善計画</div><div class="tg-desc" style="margin-top:4px">→ 左から右へ自然に深まる</div></div>
+      </div>
+      <div class="struggle-result">✓ 結論：4ペインは単に画面を4分割することではありません。「ざっくり理解→詳しく理解→原因→改善」という思考の流れを視覚化する構造です。</div>
+    </div>
+  </div>
+
+  <div class="struggle-card">
+    <div class="struggle-hd"><div class="struggle-num">苦戦③</div><div class="struggle-ttl">「改善計画」をどう自動生成するか</div></div>
+    <div class="struggle-body">
+      <p style="font-size:13px;margin-bottom:12px">AIのAPIを使えば自由な文章で提案できますが、発表ツールとして安定動作させるにはAPIなしで原因パターンに対応した提案を生成する必要がありました。</p>
+      <div class="compare">
+        <div class="cmp-bad"><div class="cmp-lbl bad">AI APIあり</div><div class="cmp-txt">自由な提案が出せるが、発表中に不安定になるリスクがある</div></div>
+        <div class="cmp-good"><div class="cmp-lbl good">パターンマッチ ✓</div><div class="cmp-txt">原因×問題タイプで組み合わせ提案。安定かつ実用的</div></div>
+      </div>
+      <div class="struggle-result">✓ 結論：原因（6種）×理解度（A/B/C）×問題タイプ（OX/4択）の組み合わせで、十分バリエーションのある改善提案が生成できると気づきました。「完璧な提案」より「確実に動く提案」を選びました。</div>
+    </div>
+  </div>
+
+  <div class="summary-box">
+    <div class="summary-ey">3つの苦戦から学んだこと</div>
+    <div class="summary-ttl">「誰でも使えるツール」を狙うと、<br>結局は<span>誰にも噛み合わない</span>画面になる</div>
+    <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.7">自分の中心の課題を1つに絞る勇気と、絞るために考え抜く根気。この2つが、画面を作る前に必要でした。コードを書く時間より、決めきれずに立ち止まる時間のほうが長かったのが正直なところです。</p>
+  </div>
+</div>
+
+<div class="footer">勉強ナビ — 失敗パターンを蓄積し、次回の学習行動まで決める学習改善システム</div>
+
+<script>
+// ── データ ──
+const QS = [
+  {id:0,text:'「システム状態の視認性」とは、ユーザーに現在の状態を常に知らせることを意味する。',type:'ox',answer:true,explain:'適切なフィードバックを適切なタイミングで提供し、ユーザーが現在何が起きているか常に把握できるようにすることです。',point:'進行状況バー、ローディングスピナー、確認メッセージなどが代表例。',principle:'第1原則：システム状態の視認性'},
+  {id:1,text:'「エラー防止」の原則は「エラーメッセージ」の原則よりも優先度が低い。',type:'ox',answer:false,explain:'エラーを防ぐことは、エラー後に対処することよりも重要です。エラー防止の方が優先度が高い。',point:'確認ダイアログ、制約付き入力などがエラー防止の代表例。',principle:'第5原則：エラー防止'},
+  {id:2,text:'ユーザーの記憶負荷を最小化するために行うべきことはどれか？',type:'sel',choices:['すべての情報を一画面に表示する','オブジェクト・行動・選択肢を可視化する','テキストのみのインターフェースを使用する','ショートカットキーを廃止する'],answer:1,explain:'「認識対想起」の原則では、ユーザーが記憶するのではなく、見て認識できるようにすることが重要です。',point:'ドロップダウン、アイコン、ツールチップが記憶負荷を下げる代表例。',principle:'第6原則：認識対想起'},
+  {id:3,text:'「柔軟性と効率性」において、初心者には見えない機能を上級者向けに提供することは適切である。',type:'ox',answer:true,explain:'アクセラレーターは上級者向けに提供し、両方のニーズに応えられます。',point:'キーボードショートカット、カスタマイズ機能などが代表例。',principle:'第7原則：柔軟性と効率性'},
+  {id:4,text:'「一貫性と標準」においてメタファーが重要な理由はどれか？',type:'sel',choices:['デザインを美しく見せるため','現実世界の概念をUI操作に活用するため','システムの処理速度を上げるため','ユーザーのログインを簡単にするため'],answer:1,explain:'ユーザーが慣れ親しんだ現実世界の言葉や概念を使うことで直感的な理解を促します。',point:'ゴミ箱、ショッピングカート、ファイルフォルダなどが代表例。',principle:'第2原則：システムと現実世界の一致'},
+  {id:5,text:'「ユーザーの制御と自由」は、誤操作の際に簡単に元に戻せることを保証する。',type:'ox',answer:true,explain:'「緊急脱出口」を提供することでユーザーは安心して操作できます。Undo/Redoがその代表例。',point:'Ctrl+Z、キャンセルボタン、「前のページへ戻る」などが重要な実装例。',principle:'第3原則：ユーザーの制御と自由'},
+  {id:6,text:'「審美的で最小限のデザイン」において適切でない行為はどれか？',type:'sel',choices:['不要な情報を削除する','重要な情報を強調する','すべての機能を一画面に詰め込む','白いスペースを活用する'],answer:2,explain:'不要な情報はすべての関連情報を薄めます。関連性の高い情報のみを表示し優先順位を明確にすることが重要です。',point:'情報の優先順位付け、適切な余白、視覚的階層が核心。',principle:'第8原則：審美的で最小限のデザイン'},
+];
+
+const CAUSES = [
+  {id:'knowledge', label:'知識不足', sub:'必要な知識を知らなかった', ico:'📚'},
+  {id:'understanding', label:'理解不足', sub:'知識はあるが理解が不十分', ico:'💡'},
+  {id:'skip', label:'読み飛ばし', sub:'問題文を正確に読んでいない', ico:'👁'},
+  {id:'calc', label:'計算ミス', sub:'計算過程でミスした', ico:'🔢'},
+  {id:'careless', label:'勘違い・思い込み', sub:'思い込みや勘違いをしていた', ico:'🤔'},
+  {id:'time', label:'ケアレスミス', sub:'注意不足によるミス', ico:'⚡'},
+];
+
+// 改善計画パターン（原因 × 理解度）
+const PROPOSALS = {
+  knowledge: {
+    C: '「{principle}」の基礎から学び直してください。まず用語カードで定義を確認し、教科書の該当箇所を精読しましょう。',
+    B: '「{principle}」の知識に抜けがあります。類似問題を3問解いて定着を確認してください。',
+    A: '知識の細部に不安があります。用語の定義を声に出して説明できるか確認してみてください。',
+  },
+  understanding: {
+    C: '「{principle}」の概念の理解が不十分です。具体例を3つ自分で考え、なぜそれが該当するか説明してみましょう。',
+    B: '概念は知っているが深さが足りません。問題の「なぜそうなるか」を自分の言葉で説明する練習をしてください。',
+    A: '理解の応用力を高める必要があります。実際のUIを見て原則を当てはめる練習が効果的です。',
+  },
+  skip: {
+    C: '問題文の読み方を変えましょう。キーワードに下線を引き、選択肢を読む前に自分の答えを先に考える習慣をつけてください。',
+    B: '問題文の重要語句を意識して読む練習が必要です。「〜とは」「〜でないものは」などの語句に注目してください。',
+    A: '読み飛ばしのクセが残っています。急がず、問題文を2回読む習慣をつけましょう。',
+  },
+  calc: {
+    C: '計算や論理展開の過程を書き出す習慣をつけてください。頭の中だけで処理しないことがミス防止の第一歩です。',
+    B: '計算ステップを丁寧に確認しましょう。解答後に検算する習慣をつけてください。',
+    A: '計算精度は上がっています。引き続き計算過程を書き出す習慣を続けてください。',
+  },
+  careless: {
+    C: '思い込みが強いパターンです。「本当にそうか？」と自問する習慣をつけてください。選択肢を全部読んでから選びましょう。',
+    B: '直感で答えを決めていませんか？根拠を確認してから解答する癖をつけましょう。',
+    A: '勘違いの傾向が出ています。答えの根拠を1文で説明できるか確認してみてください。',
+  },
+  time: {
+    C: '注意力の維持が課題です。問題を解くときは一問一問に集中し、焦らず確認する習慣をつけてください。',
+    B: '解答前に一度立ち止まる「確認の間」を意識してください。急いでいるときほどケアレスミスが増えます。',
+    A: 'ほぼ理解できています。最後の見直しを欠かさない習慣を続けましょう。',
+  },
+};
+
+// アクションテンプレート（原因別）
+const ACTIONS = {
+  knowledge: [
+    {txt:'用語カードで定義を確認する', when:'今日'},
+    {txt:'教科書の該当箇所を精読する', when:'明日'},
+    {txt:'類似問題を3問解いて定着確認', when:'次回から'},
+  ],
+  understanding: [
+    {txt:'具体例を3つ自分で考えてみる', when:'今日'},
+    {txt:'「なぜそうなるか」を声に出して説明する', when:'明日'},
+    {txt:'実際のUIで原則を当てはめる練習', when:'今週中'},
+  ],
+  skip: [
+    {txt:'問題文のキーワードに下線を引く習慣をつける', when:'次回から'},
+    {txt:'選択肢を読む前に答えを先に考える', when:'今回から'},
+    {txt:'問題文を2回読んでから解答する', when:'今回から'},
+  ],
+  calc: [
+    {txt:'計算過程をすべて書き出す', when:'今回から'},
+    {txt:'解答後に検算する', when:'今回から'},
+    {txt:'間違えたステップを特定してメモ', when:'次回から'},
+  ],
+  careless: [
+    {txt:'選択肢を全部読んでから選ぶ', when:'今回から'},
+    {txt:'「本当にそうか？」と自問する習慣', when:'今回から'},
+    {txt:'答えの根拠を1文で言えるか確認', when:'次回から'},
+  ],
+  time: [
+    {txt:'解答前に「確認の間」を意識する', when:'今回から'},
+    {txt:'最後に見直しの時間を必ず取る', when:'今回から'},
+    {txt:'焦らず一問一問に集中する', when:'今回から'},
+  ],
+};
+
+// ── 状態 ──
+let cur = null, selAns = null, answered = null;
+let causes = {}, memo = '';
+let confLog = {};   // qid -> 'A'|'B'|'C'
+let causeLog = {};  // qid -> cause ids[]
+let histLog = {};   // qid -> [{conf,causes,memo}...]
+let selectedActions = {};
+let savedLog = {};  // qid -> bool
+
+const ORDER = {C:0,B:1,A:2};
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function trunc(s,n){return s.length>n?s.slice(0,n)+'…':s}
+
+function sortedQ(){
+  return [...QS].sort((a,b)=>{
+    const ba=confLog[a.id]??'Z', bb=confLog[b.id]??'Z';
+    return (ORDER[ba]??3)-(ORDER[bb]??3);
+  });
+}
+
+function doneCount(){return Object.keys(confLog).length}
+
+// ── レンダー ──
+function renderAll(){renderP1();renderP2();renderP3();renderP4();updateProg();updateDash()}
+
+function renderP1(){
+  document.getElementById('p1').innerHTML = sortedQ().map(q=>{
+    const b=confLog[q.id];
+    const bl=b?`<span class="qbdg bdg-${b}">${b}</span>`:`<span class="qbdg bdg-N">－</span>`;
+    const prev=histLog[q.id]?.[0];
+    const prevHtml=prev?`<div class="qprev">前回：${esc(prev.conf)}　${prev.causes.length?prev.causes.map(c=>CAUSES.find(x=>x.id===c)?.label).join('・'):'なし'}</div>`:'';
+    return `<div class="qrow${cur===q.id?' active':''}" onclick="handleSel(${q.id})">
+      <div class="qrow-top"><span class="qnum">Q${q.id+1}</span><span class="qtxt">${esc(trunc(q.text,28))}</span>${bl}</div>
+      ${prevHtml}
+    </div>`;
+  }).join('');
+}
+
+function renderP2(){
+  if(cur===null){
+    document.getElementById('p2-sub').textContent='問題と解答';
+    document.getElementById('p2').innerHTML='<div class="locked"><div class="lock-ico">←</div>問題を選んでください</div>';
+    return;
+  }
+  const q=QS[cur];
+  document.getElementById('p2-sub').textContent=`Q${q.id+1} / ${q.principle}`;
+  const done=answered!==null;
+  let choHtml='';
+  if(q.type==='ox'){
+    choHtml=`<div class="ox-row">
+      <button class="ox-btn${selAns===true?(answered!==null?(q.answer===true?' sel-ok':' sel-ng'):(selAns===true?' sel-ok':'')):(selAns===true&&!done?' sel-ok':'')}" ${done?'disabled':''} onclick="pickOX(true)">○</button>
+      <button class="ox-btn${selAns===false?(answered!==null?(q.answer===false?' sel-ok':' sel-ng'):(selAns===false?' sel-ng':'')):(selAns===false&&!done?' sel-ng':'')}" ${done?'disabled':''} onclick="pickOX(false)">×</button>
+    </div>`;
+  }else{
+    choHtml=q.choices.map((c,i)=>{
+      let cls='ch-btn';
+      if(done){if(i===q.answer)cls+=' ok';else if(i===selAns&&selAns!==q.answer)cls+=' ng';}
+      else if(selAns===i)cls+=' sel';
+      return `<button class="${cls}" ${done?'disabled':''} onclick="pickSel(${i})">${String.fromCharCode(65+i)}. ${esc(c)}</button>`;
+    }).join('');
+  }
+  const resHtml=done
+    ?`<div class="res-box ${answered?'res-ok':'res-ng'}">${answered?'✓ 正解！':'✗ 不正解'}</div>
+      <div class="explain"><div class="explain-lbl">解説</div><div class="explain-txt">${esc(q.explain)}</div></div>
+      <div class="explain" style="border-left:2px solid var(--blue)"><div class="explain-lbl">学習ポイント</div><div class="explain-txt">${esc(q.point)}</div></div>`
+    :`<button class="dbtn primary" ${selAns===null?'disabled':''} onclick="handleSubmit()">解答する</button>`;
+  document.getElementById('p2').innerHTML=`<div class="qtext">${esc(q.text)}</div>${choHtml}${resHtml}`;
+}
+
+function renderP3(){
+  if(answered===null){
+    document.getElementById('p3').innerHTML='<div class="locked"><div class="lock-ico">🔒</div>解答後に入力できます</div>';
+    return;
+  }
+  const causeHtml=CAUSES.map(c=>{
+    const sel=causes[c.id]?'sel':'';
+    return `<div class="cause-item ${sel}" onclick="toggleCause('${c.id}')">
+      <div class="cause-ico">${c.ico}</div>
+      <div><div class="cause-txt">${c.label}</div><div class="cause-sub">${c.sub}</div></div>
+    </div>`;
+  }).join('');
+
+  // 過去記録
+  const hist=histLog[cur]??[];
+  const histHtml=hist.length?`
+    <div style="height:1px;background:var(--border);margin:10px 0"></div>
+    <div class="slbl">過去の記録</div>
+    ${hist.map((h,i)=>`<div style="background:var(--bg);border-radius:8px;padding:7px 9px;margin-bottom:5px;font-size:10px">
+      <span class="qbdg bdg-${h.conf}">${h.conf}</span> ${h.causes.map(c=>CAUSES.find(x=>x.id===c)?.label).join('・')||'原因なし'}
+      ${h.memo?`<div style="color:var(--muted);margin-top:2px;font-style:italic">${esc(h.memo)}</div>`:''}
+    </div>`).join('')}`:'';
+
+  document.getElementById('p3').innerHTML=`
+    <div class="slbl">この問題を間違えた原因は？（複数選択可）</div>
+    ${causeHtml}
+    <div class="slbl">メモ（任意）</div>
+    <textarea class="memo-ta" rows="2" placeholder="なぜ間違えたか…" oninput="setMemo(this.value)">${esc(memo)}</textarea>
+    ${histHtml}`;
+}
+
+function renderP4(){
+  const hasCause=Object.values(causes).some(Boolean);
+  if(!hasCause&&answered!==null){
+    document.getElementById('p4').innerHTML='<div class="locked"><div class="lock-ico">🔒</div>③で原因を1つ以上<br>選択後に解放されます</div>';
+    return;
+  }
+  if(answered===null){
+    document.getElementById('p4-sub').textContent='改善計画（次どうするか）';
+    document.getElementById('p4').innerHTML='<div class="locked"><div class="lock-ico">🔒</div>③の原因分析後<br>に解放されます</div>';
+    return;
+  }
+  if(!hasCause)return;
+
+  document.getElementById('p4-sub').textContent='改善計画（次どうするか）';
+  const q=QS[cur];
+  const conf=confLog[cur]??'C';
+  const selectedCauses=CAUSES.filter(c=>causes[c.id]);
+
+  // 提案生成
+  const primaryCause=selectedCauses[0];
+  const proposal=primaryCause
+    ?(PROPOSALS[primaryCause.id]?.[conf]??'').replace('{principle}',q.principle)
+    :'原因を選択してください。';
+
+  // アクション
+  const allActions=selectedCauses.flatMap(c=>ACTIONS[c.id]??[]).filter((a,i,arr)=>arr.findIndex(x=>x.txt===a.txt)===i).slice(0,4);
+  const actionHtml=allActions.map((a,i)=>{
+    const sel=selectedActions[i]?'sel':'';
+    const cb=selectedActions[i]?'✓':'';
+    return `<div class="action-item ${sel}" onclick="toggleAction(${i})">
+      <div class="action-cb">${cb}</div>
+      <div class="action-txt">${esc(a.txt)}<div class="action-when">いつ：${a.when}</div></div>
+    </div>`;
+  }).join('');
+
+  const saved=savedLog[cur];
+  document.getElementById('p4').innerHTML=`
+    <div class="ai-proposal">
+      <div class="ai-proposal-hd"><div class="ai-ico">AI</div><div class="ai-proposal-title">AIからの改善提案</div></div>
+      <div class="ai-proposal-txt">${esc(proposal)}</div>
+    </div>
+    <div class="slbl">おすすめアクション（選択・編集）</div>
+    ${actionHtml||'<div style="font-size:11px;color:var(--muted)">原因を選択するとアクションが表示されます</div>'}
+    <button class="save-btn" onclick="handleSave()" ${allActions.length===0?'disabled':''}>
+      ${saved?'✓ 保存済み — 記録を更新する':'改善計画を保存'}
+    </button>
+    <div class="next-rev">次回の復習予定：📅 2日後</div>`;
+}
+
+// ── イベント ──
+function handleSel(qid){
+  cur=qid; selAns=null; answered=null; causes={}; memo=''; selectedActions={}; renderAll();
+}
+function pickOX(v){if(answered!==null)return;selAns=v;renderP2()}
+function pickSel(i){if(answered!==null)return;selAns=i;renderP2()}
+function handleSubmit(){
+  if(cur===null||selAns===null)return;
+  answered=(selAns===QS[cur].answer);
+  if(!confLog[cur])confLog[cur]='C';
+  renderP2();renderP3();renderP4();
+}
+function toggleCause(cid){
+  causes[cid]=!causes[cid];
+  renderP3();renderP4();
+}
+function setMemo(v){memo=v}
+function toggleAction(i){selectedActions[i]=!selectedActions[i];renderP4()}
+function handleSave(){
+  if(cur===null)return;
+  const entry={conf:confLog[cur]??'C',causes:Object.keys(causes).filter(k=>causes[k]),memo};
+  confLog[cur]=entry.conf;
+  causeLog[cur]=entry.causes;
+  histLog[cur]=[entry,...(histLog[cur]??[])];
+  savedLog[cur]=true;
+  renderAll();
+}
+
+// ── 進捗 ──
+function updateProg(){
+  const d=doneCount(),t=QS.length;
+  document.getElementById('prog').style.width=`${Math.round(d/t*100)}%`;
+  document.getElementById('prog-lbl').textContent=`${d}/${t}問完了`;
+}
+
+// ── ダッシュボード ──
+const CAUSE_COLORS=['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#a855f7'];
+
+function updateDash(){
+  updateDonut();
+  updateSpark();
+  updateRec();
+  updateGoal();
+}
+
+function updateDonut(){
+  // 原因集計
+  const counts={};
+  CAUSES.forEach(c=>counts[c.id]=0);
+  Object.values(causeLog).forEach(arr=>arr.forEach(c=>{if(counts[c]!==undefined)counts[c]++;}));
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+
+  if(total===0){
+    // デモデータ
+    counts.understanding=45;counts.careless=25;counts.skip=20;counts.knowledge=10;
+    const t2=100;
+    renderDonut(counts,t2);
+    return;
+  }
+  renderDonut(counts,total);
+}
+
+function renderDonut(counts,total){
+  const svg=document.getElementById('donut-svg');
+  const leg=document.getElementById('legend');
+  const sorted=CAUSES.map((c,i)=>({...c,count:counts[c.id]??0,color:CAUSE_COLORS[i]})).sort((a,b)=>b.count-a.count).filter(c=>c.count>0);
+  if(sorted.length===0){svg.innerHTML='<circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" stroke-width="4"/>';leg.innerHTML='<div style="font-size:10px;color:var(--muted)">まだデータがありません</div>';document.getElementById('donut-top-pct').textContent='—';document.getElementById('donut-top-lbl').textContent='分析中';return;}
+  let svgHtml='<circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" stroke-width="4"/>';
+  let offset=25;
+  sorted.forEach(c=>{
+    const pct=c.count/total*100;
+    const dash=pct/100*100;
+    svgHtml+=`<circle cx="18" cy="18" r="15.9" fill="none" stroke="${c.color}" stroke-width="4" stroke-dasharray="${dash} ${100-dash}" stroke-dashoffset="${-offset+25}" style="transition:stroke-dasharray 0.5s"/>`;
+    offset+=dash;
+  });
+  svg.innerHTML=svgHtml;
+  const top=sorted[0];
+  document.getElementById('donut-top-pct').textContent=Math.round(top.count/total*100)+'%';
+  document.getElementById('donut-top-lbl').textContent=top.label;
+  leg.innerHTML=sorted.slice(0,4).map(c=>`<div class="leg-row"><div class="leg-dot" style="background:${c.color}"></div>${c.label}<span class="leg-pct">${Math.round(c.count/total*100)}%</span></div>`).join('');
+}
+
+function updateSpark(){
+  const svg=document.getElementById('spark-svg');
+  const datesEl=document.getElementById('spark-dates');
+  // スコアデータ（蓄積に応じて成長）
+  const base=[40,45,52,55,58,65];
+  const bonus=Math.min(doneCount()*4,30);
+  const pts=base.map((v,i)=>i===base.length-1?Math.min(v+bonus,100):v);
+  const labels=['4/15','4/22','4/29','5/6','5/13','今日'];
+  const min=Math.min(...pts)-5,max=Math.max(...pts)+5;
+  const w=200,h=60;
+  const x=(i)=>i/(pts.length-1)*w;
+  const y=(v)=>h-(v-min)/(max-min)*h;
+  const path=pts.map((v,i)=>`${i===0?'M':'L'}${x(i)} ${y(v)}`).join(' ');
+  const area=`${path} L${w} ${h} L0 ${h} Z`;
+  svg.innerHTML=`<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#sg)"/>
+    <path d="${path}" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="${i===pts.length-1?'#2563eb':'white'}" stroke="#2563eb" stroke-width="1.5"/>`).join('')}`;
+  datesEl.innerHTML=labels.map(l=>`<span>${l}</span>`).join('');
+}
+
+function updateRec(){
+  const rec=document.getElementById('rec-list');
+  // C→Bのものを優先
+  const cItems=QS.filter(q=>confLog[q.id]==='C').slice(0,2);
+  const bItems=QS.filter(q=>confLog[q.id]==='B').slice(0,1);
+  const uncItems=QS.filter(q=>!confLog[q.id]).slice(0,2);
+  const items=[...cItems,...bItems,...uncItems].slice(0,3);
+  if(items.length===0){rec.innerHTML='<div style="font-size:11px;color:var(--muted)">問題を解くと表示されます</div>';return;}
+  rec.innerHTML=items.map((q,i)=>`<div class="rec-item"><div class="rec-num">${i+1}</div><div class="rec-txt">${esc(trunc(q.principle,18))}${confLog[q.id]?`<span class="qbdg bdg-${confLog[q.id]}" style="margin-left:4px">${confLog[q.id]}</span>`:''}</div></div>`).join('');
+}
+
+function handleRecBtn(){
+  const q=QS.find(q=>confLog[q.id]==='C')||QS.find(q=>confLog[q.id]==='B')||QS.find(q=>!confLog[q.id]);
+  if(q)handleSel(q.id);
+}
+
+function updateGoal(){
+  const total=QS.length;
+  const done=doneCount();
+  const aCount=Object.values(confLog).filter(v=>v==='A').length;
+  const pct=Math.round(aCount/total*100);
+  document.getElementById('goal-bar').style.width=pct+'%';
+  document.getElementById('goal-pct').textContent=pct+'% ('+aCount+'/'+total+'問)';
+  document.getElementById('goal-streak').textContent='🗓 連続日数：'+Math.min(done+1,15)+'日';
+}
+
+renderAll();
+</script>
+</body>
+</html>
